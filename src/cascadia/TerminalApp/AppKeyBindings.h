@@ -19,6 +19,7 @@ namespace winrt::TerminalApp::implementation
         AppKeyBindings() = default;
 
         bool TryKeyChord(const winrt::Microsoft::Terminal::Control::KeyChord& kc);
+        bool TrySearchModeKeyChord(const winrt::Microsoft::Terminal::Control::KeyChord& kc);
         bool IsKeyChordExplicitlyUnbound(const winrt::Microsoft::Terminal::Control::KeyChord& kc);
 
         void SetDispatch(const winrt::TerminalApp::ShortcutActionDispatch& dispatch);

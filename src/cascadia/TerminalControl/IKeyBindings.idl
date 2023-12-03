@@ -9,6 +9,7 @@ namespace Microsoft.Terminal.Control
     interface IKeyBindings
     {
         Boolean TryKeyChord(KeyChord kc);
+        Boolean TrySearchModeKeyChord(KeyChord kc);
         Boolean IsKeyChordExplicitlyUnbound(KeyChord kc);
     }
 }

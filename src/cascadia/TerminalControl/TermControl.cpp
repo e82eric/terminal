@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "TermControl.h"
+#include "ControlSettings.h"
 
 #include <LibraryResources.h>
 
@@ -1291,17 +1292,29 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
     void TermControl::_KeyHandler(const Input::KeyRoutedEventArgs& e, const bool keyDown)
     {
+        auto modifiers = _GetPressedModifierKeys();
+        const auto vkey = gsl::narrow_cast<WORD>(e.OriginalKey());
+        const auto keyStatus = e.KeyStatus();
+        const auto scanCode = gsl::narrow_cast<WORD>(keyStatus.ScanCode);
+
         // If the current focused element is a child element of searchbox,
         // we do not send this event up to terminal
         if (_searchBox && _searchBox->ContainsFocus())
         {
+            auto bindings = _core.Settings().KeyBindings();
+            auto success = bindings.TrySearchModeKeyChord({ modifiers.IsCtrlPressed(),
+                                                      modifiers.IsAltPressed(),
+                                                      modifiers.IsShiftPressed(),
+                                                      modifiers.IsWinPressed(),
+                                                      vkey,
+                                                      scanCode });
+            if (success)
+            {
+                _searchBox->Visibility(Visibility::Collapsed);
+            }
             return;
         }
-
-        const auto keyStatus = e.KeyStatus();
-        const auto vkey = gsl::narrow_cast<WORD>(e.OriginalKey());
-        const auto scanCode = gsl::narrow_cast<WORD>(keyStatus.ScanCode);
-        auto modifiers = _GetPressedModifierKeys();
+        
 
         if (keyStatus.IsExtendedKey)
         {

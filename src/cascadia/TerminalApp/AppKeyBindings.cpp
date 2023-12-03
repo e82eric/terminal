@@ -21,6 +21,18 @@ namespace winrt::TerminalApp::implementation
         return false;
     }
 
+    bool AppKeyBindings::TrySearchModeKeyChord(const KeyChord& kc)
+    {
+        if (const auto cmd{ _actionMap.GetActionByKeyChord(kc) })
+        {
+            if (cmd.ActionAndArgs().Action() == winrt::Microsoft::Terminal::Settings::Model::ShortcutAction::MarkMode)
+            {
+                return _dispatch.DoAction(cmd.ActionAndArgs());
+            }
+        }
+        return false;
+    }
+
     bool AppKeyBindings::IsKeyChordExplicitlyUnbound(const KeyChord& kc)
     {
         return _actionMap.IsKeyChordExplicitlyUnbound(kc);

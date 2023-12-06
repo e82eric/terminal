@@ -1607,6 +1607,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             _searcher.HighlightResults();
             _searcher.MoveToCurrentSelection();
             _cachedSearchResultRows = {};
+            _renderer->TriggerSelection();
         }
         else
         {

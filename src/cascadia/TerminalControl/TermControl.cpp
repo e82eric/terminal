@@ -509,6 +509,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     {
         _core.ClearSearch();
         _searchBox->Visibility(Visibility::Collapsed);
+        _core.ClearSelection();
 
         // Set focus back to terminal control
         this->Focus(FocusState::Programmatic);

@@ -280,6 +280,15 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     void ControlCore::SelectChar(int32_t row, int32_t col)
     {
         const auto lock = _terminal->LockForWriting();
+
+        auto vp = _terminal->GetViewport();
+        if (col > vp.Width())
+        {
+            int32_t rows = col / vp.Width();
+            col %= vp.Width();
+            row += rows;
+        }
+
         _terminal->SelectNewRegion(til::point{ col, row }, til::point{ col, row });
         if (_terminal->SelectionMode() != ::Terminal::SelectionInteractionMode::Mark)
         {
@@ -1183,6 +1192,12 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             //      actually fail. We need a way to gracefully fallback.
             LOG_IF_FAILED(_renderEngine->UpdateDpi(newDpi));
             LOG_IF_FAILED(_renderEngine->UpdateFont(_desiredFont, _actualFont, featureMap, axesMap));
+
+            if (_fuzzySearchRenderEngine)
+            {
+                LOG_IF_FAILED(_fuzzySearchRenderEngine->UpdateDpi(newDpi));
+                LOG_IF_FAILED(_fuzzySearchRenderEngine->UpdateFont(_desiredFont, _actualFont, featureMap, axesMap));
+            }
         }
 
         // If the actual font isn't what was requested...
@@ -1884,8 +1899,6 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
     Control::FuzzySearchResult ControlCore::FuzzySearch(const winrt::hstring& text)
     {
-        //temporary structure to hold fzf results in an attempt to minimize the number ascii to
-        //unicode position conversions and conversions from matching positions to text runs
         struct RowResult
         {
             std::wstring rowFullText;
@@ -1910,7 +1923,6 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             return winrt::make<FuzzySearchResult>(searchResults, 0, 0);
         }
 
-        //Convert search string to ascii from unicode
         std::wstring searchTextCStr = text.c_str();
         int sizeOfSearchTextCStr = WideCharToMultiByte(CP_UTF8, 0, searchTextCStr.c_str(), -1, nullptr, 0, nullptr, nullptr);
         std::string asciiSearchString(sizeOfSearchTextCStr, 0);
@@ -1922,12 +1934,27 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
         auto rowResults = std::vector<RowResult>();
         auto rowCount = renderData->GetTextBuffer().GetLastNonSpaceCharacter().y + 1;
-        int numberOfNonSpaceLines = 0;
         int minScore = 0;
-
+        int actualRowNumber = 0;
         for (int rowNumber = 0; rowNumber < rowCount; rowNumber++)
         {
+            actualRowNumber = rowNumber;
             std::wstring_view rowText = renderData->GetTextBuffer().GetRowByOffset(rowNumber).GetText();
+            auto wrapped = renderData->GetTextBuffer().GetRowByOffset(rowNumber).WasWrapForced();
+            std::wstring concatenatedText;
+            if (wrapped)
+            {
+                concatenatedText += std::wstring(rowText);
+                while (wrapped)
+                {
+                    rowNumber++;
+                    rowText = renderData->GetTextBuffer().GetRowByOffset(rowNumber).GetText();
+                    concatenatedText += std::wstring(rowText);
+                    wrapped = renderData->GetTextBuffer().GetRowByOffset(rowNumber).WasWrapForced();
+                }
+
+                rowText = std::wstring_view(concatenatedText);
+            }
 
             auto findLastNonBlankIndex = [](const std::wstring& str) {
                 auto it = std::find_if(str.rbegin(), str.rend(), [](wchar_t ch) {
@@ -1936,16 +1963,12 @@ namespace winrt::Microsoft::Terminal::Control::implementation
                 return it == str.rend() ? -1 : std::distance(it, str.rend()) - 1;
             };
 
-            //Is there a better way to do this?  Trying to not send blank rows to fzf and have a accurate count
-            //of rows searched
             auto length = findLastNonBlankIndex(std::wstring(rowText));
 
-            if (length > 0)
+            if (rowText.size() > 0)
             {
-                numberOfNonSpaceLines++;
                 std::wstring rowFullText = rowText.data();
 
-                //Convert row text from unicode to ascii
                 int bufferSize = WideCharToMultiByte(CP_UTF8, 0, rowText.data(), -1, nullptr, 0, nullptr, nullptr);
                 std::string asciiRowText(bufferSize, 0);
                 WideCharToMultiByte(CP_UTF8, 0, rowText.data(), -1, &asciiRowText[0], bufferSize, nullptr, nullptr);
@@ -1961,7 +1984,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
                     rowResult.rowFullText = rowFullText;
                     rowResult.asciiRowText = asciiRowText;
                     rowResult.pos = pos;
-                    rowResult.rowNumber = rowNumber;
+                    rowResult.rowNumber = actualRowNumber;
                     rowResult.score = rowScore;
                     rowResult.length = length;
                     rowResults.push_back(rowResult);
@@ -1992,7 +2015,6 @@ namespace winrt::Microsoft::Terminal::Control::implementation
                 return a > b;
             });
 
-            //Convert matching positions from ascii to unicode
             std::vector<size_t> wideCharPositions;
             size_t wideCharIndex = 0;
             size_t asciiCharIndex = 0;
@@ -2016,7 +2038,6 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             bool isCurrentRunHighlighted = false;
             size_t highlightIndex = 0;
 
-            //Convert matching positions to text runs
             for (uint32_t i = 0; i < p.rowFullText.length() - 1; ++i)
             {
                 if (highlightIndex < wideCharPositions.size() && i == wideCharPositions[highlightIndex])
@@ -2058,13 +2079,20 @@ namespace winrt::Microsoft::Terminal::Control::implementation
                 runs.Append(textSegment);
             }
 
+            auto findLastNonBlankIndex = [](const std::string& str) {
+                auto it = std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+                    return !std::isspace(ch);
+                });
+                return std::distance(it, str.rend()) - 1;
+            };
+
             auto line = winrt::make<FuzzySearchTextLine>(runs, p.score, p.rowNumber, static_cast<int32_t>(p.pos->data[p.pos->size - 1]), static_cast<int32_t>(p.length));
 
             searchResults.Append(line);
             fzf_free_positions(p.pos);
         }
 
-        auto fuzzySearchResult = winrt::make<FuzzySearchResult>(searchResults, numberOfNonSpaceLines, searchResults.Size());
+        auto fuzzySearchResult = winrt::make<FuzzySearchResult>(searchResults, rowCount, searchResults.Size());
         return fuzzySearchResult;
     }
 

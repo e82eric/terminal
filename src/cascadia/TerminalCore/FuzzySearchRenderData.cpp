@@ -72,8 +72,17 @@ const FontInfo& FuzzySearchRenderData::GetFontInfo() const noexcept
 
 std::vector<Microsoft::Console::Types::Viewport> FuzzySearchRenderData::GetSelectionRects() noexcept
 {
-    auto rects = _textBuffer->GetTextRects(til::point{ 0, _row }, til::point{ _viewPort.Width() - 1, _row }, false, false);
+    auto startPoint = til::point{ 0, _row };
+    til::CoordType endRow = _row;
+
+    while (_textBuffer->GetRowByOffset(endRow).WasWrapForced())
+    {
+        endRow++;
+    }
+    auto rects = _textBuffer->GetTextRects(til::point{ 0, _row }, til::point{ _viewPort.Width() - 1, endRow }, false, false);
+
     std::vector<Microsoft::Console::Types::Viewport> result;
+    result.reserve(rects.size());
 
     for (const auto& lineRect : rects)
     {

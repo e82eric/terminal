@@ -25,7 +25,6 @@
 #include "../buffer/out/search.h"
 #include "../buffer/out/TextColor.h"
 #include "../../cascadia/TerminalCore/FuzzySearchRenderData.hpp"
-#include "fzf/fzf.h"
 
 namespace ControlUnitTests
 {
@@ -247,11 +246,11 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         bool ShouldShowSelectCommand();
         bool ShouldShowSelectOutput();
 
-        Control::FuzzySearchResult FuzzySearch(const winrt::hstring& text);
+        Control::FuzzySearchResult FuzzySearch(const winrt::hstring& text) const;
         bool InitializeFuzzySearch(const float actualWidth,
                                    const float actualHeight,
                                    const float compositionScale);
-        void FuzzySearchSelectionChanged(int32_t row);
+        void FuzzySearchSelectionChanged(int32_t row) const;
         void FuzzySearchPreviewSizeChanged(const float width, const float height);
         void EnterFuzzySearchMode();
         void ExitFuzzySearchMode();

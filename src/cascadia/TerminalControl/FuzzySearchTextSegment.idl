@@ -12,7 +12,7 @@ namespace Microsoft.Terminal.Control
     [default_interface] runtimeclass FuzzySearchTextLine : Windows.UI.Xaml.Data.INotifyPropertyChanged
     {
         FuzzySearchTextLine();
-        FuzzySearchTextLine(Windows.Foundation.Collections.IObservableVector<FuzzySearchTextSegment> segments, Int32 score, Int32 row, Int32 firstPosition, Int32 length);
+        FuzzySearchTextLine(Windows.Foundation.Collections.IObservableVector<FuzzySearchTextSegment> segments, Int32 row, Int32 firstPosition);
 
         Windows.Foundation.Collections.IObservableVector<FuzzySearchTextSegment> Segments;
         Int32 Score { get; };

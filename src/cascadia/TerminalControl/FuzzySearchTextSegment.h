@@ -20,7 +20,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     struct FuzzySearchTextLine : FuzzySearchTextLineT<FuzzySearchTextLine>
     {
         FuzzySearchTextLine() = default;
-        FuzzySearchTextLine(const Windows::Foundation::Collections::IObservableVector<winrt::Microsoft::Terminal::Control::FuzzySearchTextSegment>& segments, int32_t score, int32_t row, int32_t firstPosition, int32_t length);
+        FuzzySearchTextLine(const Windows::Foundation::Collections::IObservableVector<winrt::Microsoft::Terminal::Control::FuzzySearchTextSegment>& segments, int32_t row, int32_t firstPosition);
 
         WINRT_CALLBACK(PropertyChanged, Windows::UI::Xaml::Data::PropertyChangedEventHandler);
         WINRT_OBSERVABLE_PROPERTY(Windows::Foundation::Collections::IObservableVector<winrt::Microsoft::Terminal::Control::FuzzySearchTextSegment>, Segments, _PropertyChangedHandlers);

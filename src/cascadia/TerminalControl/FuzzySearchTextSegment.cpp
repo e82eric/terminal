@@ -19,12 +19,10 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     {
     }
 
-    FuzzySearchTextLine::FuzzySearchTextLine(const Windows::Foundation::Collections::IObservableVector<winrt::Microsoft::Terminal::Control::FuzzySearchTextSegment>& segments, int32_t score, int32_t row, int32_t firstPosition, int32_t length) :
+    FuzzySearchTextLine::FuzzySearchTextLine(const Windows::Foundation::Collections::IObservableVector<winrt::Microsoft::Terminal::Control::FuzzySearchTextSegment>& segments, int32_t row, int32_t firstPosition) :
         _Segments(segments),
-        _Score(score),
         _Row(row),
-        _FirstPosition(firstPosition),
-        _Length(length)
+        _FirstPosition(firstPosition)
     {
     }
 

@@ -19,6 +19,13 @@ Revision History:
 
 #include "textBuffer.hpp"
 #include "../renderer/inc/IRenderData.hpp"
+#include "../fzf/fzf.h"
+
+struct FuzzySearchResultRow
+{
+    til::CoordType startRowNumber;
+    std::vector<int32_t> positions;
+};
 
 class Search final
 {
@@ -26,6 +33,7 @@ public:
     Search() = default;
 
     bool ResetIfStale(Microsoft::Console::Render::IRenderData& renderData, const std::wstring_view& needle, bool reverse, bool caseInsensitive);
+    std::vector<FuzzySearchResultRow> FuzzySearch(Microsoft::Console::Render::IRenderData& renderData, const std::wstring_view& needle) const;
 
     void MoveToCurrentSelection();
     void MoveToPoint(til::point anchor) noexcept;
@@ -49,4 +57,5 @@ private:
     std::vector<til::point_span> _results;
     ptrdiff_t _index = 0;
     ptrdiff_t _step = 0;
+    fzf_slab_t* _fzfSlab = fzf_make_default_slab();
 };

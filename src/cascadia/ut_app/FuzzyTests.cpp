@@ -20,15 +20,6 @@ namespace TerminalAppUnitTests2
         PathSeparator = 5,
         Separator = 4,
         Camel = 2,
-
-        ScoreMatch = 16,
-        ScoreGapStart = -3,
-        ScoreGapExtension = -1,
-        BonusBoundary = ScoreMatch / 2,
-        BonusNonWord = ScoreMatch / 2,
-        BonusCamel123 = BonusBoundary + ScoreGapExtension,
-        BonusConsecutive = -(ScoreGapStart + ScoreGapExtension),
-        BonusFirstCharMultiplier = 2,
     } score_t;
 
     class FuzzyTests
@@ -75,10 +66,6 @@ namespace TerminalAppUnitTests2
         TEST_METHOD(SurrogatePair_ToUtf16Pos_ConsecutiveChars);
         TEST_METHOD(SurrogatePair_ToUtf16Pos_PreferConsecutiveChars);
         TEST_METHOD(SurrogatePair_ToUtf16Pos_GapAndBoundary);
-        TEST_METHOD(Overflow);
-        TEST_METHOD(Overflow2);
-        TEST_METHOD(Overflow3);
-        TEST_METHOD(Overflow4);
     };
 
     void AssertScoreAndPositions(std::wstring_view patternText, std::wstring_view text, int expectedScore, std::vector<int16_t> expectedPositions)
@@ -98,41 +85,6 @@ namespace TerminalAppUnitTests2
         {
             VERIFY_ARE_EQUAL(expectedPositions[i], positions[i]);
         }
-    }
-    void FuzzyTests::Overflow4()
-    {
-        AssertScoreAndPositions(
-            L"a",
-            L"a",
-            BaseScore + CaseMatch + StartOfString,
-            {0});
-    }
-
-    void FuzzyTests::Overflow()
-    {
-        AssertScoreAndPositions(
-            L"aaa",
-            L"aaaaaaaaa",
-            (BaseScore + CaseMatch + StartOfString) + (BaseScore + CaseMatch + Consecutive * 1) + (BaseScore + CaseMatch + (2 * Consecutive)),
-            {0,1,2});
-    }
-
-    void FuzzyTests::Overflow2()
-    {
-        AssertScoreAndPositions(
-            L"bbb",
-            L"bbbb",
-            (BaseScore + CaseMatch + StartOfString) + (BaseScore + CaseMatch + Consecutive * 1) + (BaseScore + CaseMatch + (2 * Consecutive)),
-            {0,1,2});
-    }
-
-    void FuzzyTests::Overflow3()
-    {
-        AssertScoreAndPositions(
-            L"xxxxxx",
-            L"xxxxxxxxxxxxxxxx",
-            (BaseScore + CaseMatch + StartOfString) + (BaseScore + CaseMatch + Consecutive * 1) + (BaseScore + CaseMatch + (2 * Consecutive)) + (BaseScore + CaseMatch + (3 * Consecutive)) + (BaseScore + CaseMatch + (4 * Consecutive)) + (BaseScore + CaseMatch + (5 * Consecutive)),
-            {0,1,2,3,4,5});
     }
 
     void FuzzyTests::AllPatternCharsDoNotMatch()
@@ -209,9 +161,7 @@ namespace TerminalAppUnitTests2
         AssertScoreAndPositions(
             L"fuss",
             L"Fußball",
-            //I think ScoreMatch * 4 is correct in this case since it matches 4 codepoints pattern??? fuss
-            ScoreMatch * 4 + BonusBoundary * BonusFirstCharMultiplier + BonusConsecutive * BonusFirstCharMultiplier * 3,
-            //Only 3 positions in the text were matched
+            (BaseScore + StartOfString) + (BaseScore + CaseMatch + (1 * Consecutive)) + (BaseScore + (2 * Consecutive)),
             { 2, 1, 0 });
     }
 

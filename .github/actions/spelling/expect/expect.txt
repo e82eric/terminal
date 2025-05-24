@@ -572,6 +572,7 @@ EOB
 EOK
 EPres
 EQU
+equalish
 ERASEBKGND
 ERRORONEXIT
 ESFCIB
@@ -671,7 +672,6 @@ fuzzyfinder
 fwdecl
 fwe
 fwlink
-fzf
 gci
 gcx
 gdi

@@ -107,6 +107,7 @@ namespace Microsoft.Terminal.Control
 
         void ScrollViewport(Int32 viewTop);
 
+        IVector<String> SuggestionSearch(String needle);
         void CreateSearchBoxControl();
         Boolean SearchBoxEditInFocus();
 

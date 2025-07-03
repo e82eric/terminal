@@ -1334,6 +1334,11 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         control->RaiseNotice.raise(*control, std::move(noticeArgs));
     }
 
+    Windows::Foundation::Collections::IVector<hstring> TermControl::SuggestionSearch(winrt::hstring const& needle)
+    {
+        return _core.SuggestionSearch(needle);
+    }
+
     void TermControl::_AttachDxgiSwapChainToXaml(HANDLE swapChainHandle)
     {
         auto nativePanel = SwapChainPanel().as<ISwapChainPanelNative2>();

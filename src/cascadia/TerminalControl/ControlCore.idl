@@ -148,6 +148,7 @@ namespace Microsoft.Terminal.Control
         void ResumeRendering();
         void BlinkAttributeTick();
 
+        IVector<String> SuggestionSearch(String needle);
         SearchResults Search(SearchRequest request);
         void ClearSearch();
 

@@ -1252,6 +1252,24 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         _updateSelectionUI();
     }
 
+    Windows::Foundation::Collections::IVector<hstring> ControlCore::SuggestionSearch(winrt::hstring const& needle)
+    {
+        //TODO: this should probably skip the current cursor line
+        auto& buffer = _terminal->GetTextBuffer();
+        if (auto searchResults = buffer.SearchText(needle, SearchFlag::RegularExpression, 0, til::CoordTypeMax))
+        {
+            auto results = std::vector<winrt::hstring>(searchResults->size());
+            for (auto sr : searchResults.value())
+            {
+                auto text = buffer.GetPlainText(sr.start, sr.end);
+                results.emplace_back(text);
+            }
+
+            return winrt::single_threaded_vector<hstring>(std::move(results));
+        }
+        return winrt::single_threaded_vector<hstring>();
+    }
+
     static wil::unique_close_clipboard_call _openClipboard(HWND hwnd)
     {
         bool success = false;

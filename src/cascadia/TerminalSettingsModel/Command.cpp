@@ -742,6 +742,26 @@ namespace winrt::Microsoft::Terminal::Settings::Model::implementation
         return winrt::single_threaded_vector<Model::Command>(std::move(result));
     }
 
+    Windows::Foundation::Collections::IVector<Model::Command> Command::ScrollBackSuggestionToCommands(Windows::Foundation::Collections::IVector<winrt::hstring> suggestions)
+    {
+        std::vector<Model::Command> result;
+        result.reserve(suggestions.Size());
+
+        for (const auto& suggestion : suggestions)
+        {
+            auto args = winrt::make_self<SendInputArgs>(suggestion);
+            Model::ActionAndArgs actionAndArgs{ ShortcutAction::SendInput, *args };
+
+            auto command = winrt::make_self<Command>();
+            command->_ActionAndArgs = actionAndArgs;
+            command->_name = suggestion;
+            command->IconPath(L"\uE756");
+            result.push_back(*command);
+        }
+
+        return winrt::single_threaded_vector<Model::Command>(std::move(result));
+    }
+
     void Command::LogSettingChanges(std::set<std::string>& changes)
     {
         if (_IterateOn != ExpandCommandType::None)

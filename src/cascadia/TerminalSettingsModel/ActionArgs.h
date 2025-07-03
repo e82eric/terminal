@@ -225,7 +225,8 @@ protected:                                                                  \
 ////////////////////////////////////////////////////////////////////////////////
 #define SUGGESTIONS_ARGS(X)                                                 \
     X(SuggestionsSource, Source, "source", false, SuggestionsSource::Tasks) \
-    X(bool, UseCommandline, "useCommandline", false, false)
+    X(bool, UseCommandline, "useCommandline", false, false) \
+    X(winrt::hstring, Regex, "regex", false, L"")
 
 ////////////////////////////////////////////////////////////////////////////////
 #define FIND_MATCH_ARGS(X) \

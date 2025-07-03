@@ -1517,6 +1517,20 @@ namespace winrt::TerminalApp::implementation
             }
         }
 
+        if (WI_IsFlagSet(source, SuggestionsSource::Scrollback))
+        {
+            if (const auto termControl{_GetActiveControl()})
+            {
+                //TODO: handling for when regex is null
+                const auto scrollBackResults = termControl.SuggestionSearch(realArgs.Regex());
+                auto scrollBackCommands = Command::ScrollBackSuggestionToCommands(scrollBackResults);
+                for (auto r : scrollBackCommands)
+                {
+                    commandsCollection.push_back(r);
+                }
+            }
+        }
+
         co_await wil::resume_foreground(Dispatcher());
 
         // Open the palette with all these commands in it.

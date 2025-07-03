@@ -1254,15 +1254,16 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
     Windows::Foundation::Collections::IVector<hstring> ControlCore::SuggestionSearch(winrt::hstring const& needle)
     {
+        auto _ = _terminal->LockForReading();
         //TODO: this should probably skip the current cursor line
         auto& buffer = _terminal->GetTextBuffer();
         if (auto searchResults = buffer.SearchText(needle, SearchFlag::RegularExpression, 0, til::CoordTypeMax))
         {
-            auto results = std::vector<winrt::hstring>(searchResults->size());
-            for (auto sr : searchResults.value())
+            auto results = std::vector<winrt::hstring>();
+            results.reserve(searchResults->size());
+            for (auto it = searchResults->rbegin(); it != searchResults->rend(); ++it)
             {
-                auto text = buffer.GetPlainText(sr.start, sr.end);
-                results.emplace_back(text);
+                results.emplace_back(buffer.GetPlainText(it->start, it->end));
             }
 
             return winrt::single_threaded_vector<hstring>(std::move(results));

@@ -50,12 +50,36 @@ namespace winrt::TerminalApp::implementation
         });
     }
 
+    size_t _patternLen(const fzf::matcher::Pattern &pattern)
+    {
+        size_t result = 0;
+        for (auto t : pattern.terms)
+        {
+            result += t.size();
+        }
+        return result;
+    }
+
     void FilteredCommand::UpdateFilter(std::shared_ptr<fzf::matcher::Pattern> pattern)
     {
         // If the filter was not changed we want to prevent the re-computation of matching
         // that might result in triggering a notification event
         if (pattern != _pattern)
         {
+            if (pattern && _pattern)
+            {
+                auto oldPatternLen = _patternLen(*_pattern);
+                auto newPatternLen = _patternLen(*pattern);
+                if (oldPatternLen > 0)
+                {
+                    if (newPatternLen > oldPatternLen && Weight() == 0)
+                    {
+                        _pattern = pattern;
+                        return;
+                    }
+                }
+            }
+
             _pattern = pattern;
             _update();
         }

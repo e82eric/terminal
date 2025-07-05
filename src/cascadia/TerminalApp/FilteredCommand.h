@@ -34,8 +34,9 @@ namespace winrt::TerminalApp::implementation
 
     private:
         std::shared_ptr<fzf::matcher::Pattern> _pattern;
-        void _update();
+        void _update(bool tryCache);
         Windows::UI::Xaml::Data::INotifyPropertyChanged::PropertyChanged_revoker _itemChangedRevoker;
+        std::vector<std::optional<fzf::matcher::MatchResult>> _resultCache;
 
         friend class TerminalAppLocalTests::FilteredCommandTests;
     };

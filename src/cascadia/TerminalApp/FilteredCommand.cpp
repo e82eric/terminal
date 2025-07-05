@@ -38,14 +38,14 @@ namespace winrt::TerminalApp::implementation
         _Item = item;
         _Weight = 0;
 
-        _update();
+        _update(false);
 
         // Recompute the highlighted name if the item name changes
         _itemChangedRevoker = _Item.PropertyChanged(winrt::auto_revoke, [weakThis{ get_weak() }](auto& /*sender*/, auto& e) {
             auto filteredCommand{ weakThis.get() };
             if (filteredCommand && e.PropertyName() == L"Name")
             {
-                filteredCommand->_update();
+                filteredCommand->_update(false);
             }
         });
     }
@@ -66,6 +66,7 @@ namespace winrt::TerminalApp::implementation
         // that might result in triggering a notification event
         if (pattern != _pattern)
         {
+            bool tryCache = false;
             if (pattern && _pattern)
             {
                 auto oldPatternLen = _patternLen(*_pattern);
@@ -77,15 +78,19 @@ namespace winrt::TerminalApp::implementation
                         _pattern = pattern;
                         return;
                     }
+                    else
+                    {
+                        tryCache = newPatternLen < oldPatternLen;
+                    }
                 }
             }
 
             _pattern = pattern;
-            _update();
+            _update(tryCache);
         }
     }
 
-    void FilteredCommand::_update()
+    void FilteredCommand::_update(bool tryCache)
     {
         std::vector<winrt::TerminalApp::HighlightedTextSegment> segments;
         const auto commandName = _Item.Name();
@@ -95,35 +100,55 @@ namespace winrt::TerminalApp::implementation
         {
             segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
         }
-        else if (auto match = fzf::matcher::Match(commandName, *_pattern.get()); !match)
-        {
-            segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
-        }
         else
         {
-            auto& matchResult = *match;
-            weight = matchResult.Score;
-
-            size_t lastPos = 0;
-            for (const auto& run : matchResult.Runs)
+            const auto patternLen = _patternLen(*_pattern);
+            if (patternLen > _resultCache.size())
             {
-                const auto& [start, end] = run;
-                if (start > lastPos)
-                {
-                    hstring nonMatch{ til::safe_slice_abs(commandName, lastPos, start) };
-                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(nonMatch, false));
-                }
-
-                hstring matchSeg{ til::safe_slice_abs(commandName, start, end + 1) };
-                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(matchSeg, true));
-
-                lastPos = end + 1;
+                _resultCache.resize(patternLen);
             }
 
-            if (lastPos < commandName.size())
+            auto& match = _resultCache[patternLen - 1];
+            if (!tryCache || !match)
             {
-                hstring tail{ til::safe_slice_abs(commandName, lastPos, SIZE_T_MAX) };
-                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(tail, false));
+                auto fuzzyMatch = fzf::matcher::Match(commandName, *_pattern.get());
+                match = fuzzyMatch;
+                _resultCache[patternLen - 1] = fuzzyMatch;
+                if (!fuzzyMatch)
+                {
+                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
+                }
+            }
+            if (!match)
+            {
+               segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false)); 
+            }
+            else
+            {
+                auto& matchResult = *match;
+                weight = matchResult.Score;
+
+                size_t lastPos = 0;
+                for (const auto& run : matchResult.Runs)
+                {
+                    const auto& [start, end] = run;
+                    if (start > lastPos)
+                    {
+                        hstring nonMatch{ til::safe_slice_abs(commandName, lastPos, start) };
+                        segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(nonMatch, false));
+                    }
+
+                    hstring matchSeg{ til::safe_slice_abs(commandName, start, end + 1) };
+                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(matchSeg, true));
+
+                    lastPos = end + 1;
+                }
+
+                if (lastPos < commandName.size())
+                {
+                    hstring tail{ til::safe_slice_abs(commandName, lastPos, SIZE_T_MAX) };
+                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(tail, false));
+                }
             }
         }
 

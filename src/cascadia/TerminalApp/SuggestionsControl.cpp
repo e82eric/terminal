@@ -811,40 +811,53 @@ namespace winrt::TerminalApp::implementation
         // here will ensure that we can check this case appropriately.
         _lastFilterTextWasEmpty = _searchBox().Text().empty();
 
-        const auto lastSelectedIndex = std::max(0, _filteredActionsView().SelectedIndex()); // SelectedIndex will return -1 for "nothing"
+        //const auto lastSelectedIndex = std::max(0, _filteredActionsView().SelectedIndex()); // SelectedIndex will return -1 for "nothing"
 
         _updateFilteredActions();
 
-        if (const auto newSelectedIndex = _filteredActionsView().SelectedIndex();
-            newSelectedIndex == -1)
+        if (_filteredActionsView().Items().Size() > 0)
         {
-            // Make sure something stays selected
-            _scrollToIndex(lastSelectedIndex);
-        }
-        else
-        {
-            // BODGY: Calling ScrollIntoView on a ListView doesn't always work
-            // immediately after a change to the items. See:
-            // https://stackoverflow.com/questions/16942580/why-doesnt-listview-scrollintoview-ever-work
-            // The SelectionChanged thing we do (in _selectedCommandChanged),
-            // but because we're also not changing the actual selected item when
-            // the size of the list grows (it _stays_ selected, so it never
-            // _changes_), we never get a SelectionChanged.
-            //
-            // To mitigate, only in the case of totally clearing out the filter
-            // (like hitting `esc`), we want to briefly select the 0th item,
-            // then immediately select the one we want to make visible. That
-            // will make sure we get a SelectionChanged when the ListView is
-            // ready, and we can use that to scroll to the right item.
-            //
-            // If we do this on _every_ change, then the preview text flickers
-            // between the 0th item and the correct one.
-            if (_lastFilterTextWasEmpty)
+            if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
             {
-                _filteredActionsView().SelectedIndex(0);
+                const auto last = _filteredActionsView().Items().Size() - 1;
+                _scrollToIndex(last);
             }
-            _scrollToIndex(newSelectedIndex);
+            else
+            {
+                _scrollToIndex(0);
+            }
         }
+
+        //if (const auto newSelectedIndex = _filteredActionsView().SelectedIndex();
+        //    newSelectedIndex == -1)
+        //{
+        //    // Make sure something stays selected
+        //    _scrollToIndex(lastSelectedIndex);
+        //}
+        //else
+        //{
+        //    // BODGY: Calling ScrollIntoView on a ListView doesn't always work
+        //    // immediately after a change to the items. See:
+        //    // https://stackoverflow.com/questions/16942580/why-doesnt-listview-scrollintoview-ever-work
+        //    // The SelectionChanged thing we do (in _selectedCommandChanged),
+        //    // but because we're also not changing the actual selected item when
+        //    // the size of the list grows (it _stays_ selected, so it never
+        //    // _changes_), we never get a SelectionChanged.
+        //    //
+        //    // To mitigate, only in the case of totally clearing out the filter
+        //    // (like hitting `esc`), we want to briefly select the 0th item,
+        //    // then immediately select the one we want to make visible. That
+        //    // will make sure we get a SelectionChanged when the ListView is
+        //    // ready, and we can use that to scroll to the right item.
+        //    //
+        //    // If we do this on _every_ change, then the preview text flickers
+        //    // between the 0th item and the correct one.
+        //    if (_lastFilterTextWasEmpty)
+        //    {
+        //        _filteredActionsView().SelectedIndex(0);
+        //    }
+        //    _scrollToIndex(newSelectedIndex);
+        //}
 
         const auto currentNeedleHasResults{ _filteredActions.Size() > 0 };
         if (!currentNeedleHasResults)
@@ -964,10 +977,23 @@ namespace winrt::TerminalApp::implementation
         // Adjust the order of the results depending on if we're top-down or
         // bottom up. This way, the "first" / "best" match is always closest to
         // the cursor.
-        if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
+        //if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
+        //{
+        //    // Reverse the list
+        //    std::reverse(std::begin(actions), std::end(actions));
+        //}
+
+
+        if (!searchText.empty())
         {
-            // Reverse the list
-            std::reverse(std::begin(actions), std::end(actions));
+            if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
+            {
+                std::sort(actions.rbegin(), actions.rend(), FilteredCommand::Compare);
+            }
+            else
+            {
+                std::sort(actions.begin(), actions.end(), FilteredCommand::Compare);
+            }
         }
 
         return actions;
@@ -1222,7 +1248,9 @@ namespace winrt::TerminalApp::implementation
         {
             const auto last = _filteredActionsView().Items().Size() - 1;
             _scrollToIndex(last);
+            _searchBox().Select(last, 0);
         }
+
         // Move the cursor to the very last position, so it starts immediately
         // after the text. This is apparently done by starting a 0-wide
         // selection starting at the end of the string.

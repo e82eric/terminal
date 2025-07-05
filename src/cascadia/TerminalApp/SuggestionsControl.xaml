@@ -205,8 +205,7 @@
                       ItemsSource="{x:Bind FilteredActions}"
                       SelectionChanged="_listItemSelectionChanged"
                       SelectionMode="Single"
-                      Style="{StaticResource NoListViewItemTransitions}"
-                      />
+                      Style="{StaticResource NoListViewItemTransitions}" />
 
 
         </Grid>

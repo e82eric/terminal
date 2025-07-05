@@ -25,6 +25,16 @@
 
     <UserControl.Resources>
         <ResourceDictionary>
+            <Style x:Key="NoListViewItemTransitions"
+               TargetType="ListViewBase">
+                <Setter Property="ItemContainerTransitions">
+                    <Setter.Value>
+                        <!-- empty collection ⇒ no entrance / delete transitions -->
+                        <TransitionCollection/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <DataTemplate x:Key="ListItemTemplate"
                           x:DataType="local:FilteredCommand">
                 <ListViewItem Height="32"
@@ -195,7 +205,8 @@
                       ItemsSource="{x:Bind FilteredActions}"
                       SelectionChanged="_listItemSelectionChanged"
                       SelectionMode="Single"
-                      Style="{StaticResource NoAnimationsPlease}" />
+                      Style="{StaticResource NoListViewItemTransitions}"
+                      />
 
 
         </Grid>

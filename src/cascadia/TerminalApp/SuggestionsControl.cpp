@@ -288,13 +288,14 @@ namespace winrt::TerminalApp::implementation
                 PreviewAction.raise(*this, cmd);
 
                 const auto description{ cmd.Description() };
+                const auto descriptionFunc{ cmd.DescriptionFunc() };
 
                 if (const auto& selected{ SelectedItem() })
                 {
                     selected.SetValue(Automation::AutomationProperties::FullDescriptionProperty(), winrt::box_value(description));
                 }
 
-                if (!description.empty())
+                if (!description.empty() || descriptionFunc)
                 {
                     _openTooltip(cmd);
                 }
@@ -311,10 +312,15 @@ namespace winrt::TerminalApp::implementation
 
     void SuggestionsControl::_openTooltip(Command cmd)
     {
-        const auto description{ cmd.Description() };
+        auto description{ cmd.Description() };
         if (description.empty())
         {
-            return;
+            const auto descriptionFunc = cmd.DescriptionFunc();
+            if (!descriptionFunc)
+            {
+                return;
+            }
+            description = descriptionFunc();
         }
 
         // Build the contents of the "tooltip" based on the description

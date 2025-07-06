@@ -1523,10 +1523,14 @@ namespace winrt::TerminalApp::implementation
             {
                 //TODO: handling for when regex is null
                 const auto scrollBackResults = termControl.SuggestionSearch(realArgs.Regex());
-                auto scrollBackCommands = Command::ScrollBackSuggestionToCommands(scrollBackResults);
-                for (auto r : scrollBackCommands)
+
+                for (auto r : scrollBackResults)
                 {
-                    commandsCollection.push_back(r);
+                    auto c = Command::ScrollBackSuggestionToCommand(r.Text, [rowNumber = r.Row, termControl]() -> winrt::hstring {
+                        //TODO:: termControl needs a local copy
+                        return termControl.GetLineText(rowNumber);
+                    });
+                    commandsCollection.push_back(c);
                 }
             }
         }

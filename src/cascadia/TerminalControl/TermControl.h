@@ -140,7 +140,8 @@ namespace winrt::Microsoft::Terminal::Control::implementation
                                              Control::RendererWarningArgs args);
 
 
-        Windows::Foundation::Collections::IVector<hstring> SuggestionSearch(winrt::hstring const& needle);
+        hstring GetLineText(int32_t rowNumber);
+        Windows::Foundation::Collections::IVector<SuggestionSearchItem> SuggestionSearch(hstring const& needle);
         void CreateSearchBoxControl();
 
         void SearchMatch(const bool goForward);

@@ -67,6 +67,12 @@ namespace Microsoft.Terminal.Control
         Boolean SearchRegexInvalid;
     };
 
+    struct SuggestionSearchItem
+    {
+        Int32 Row;
+        String Text;
+    };
+
     [default_interface] runtimeclass SelectionColor
     {
         SelectionColor();
@@ -148,7 +154,8 @@ namespace Microsoft.Terminal.Control
         void ResumeRendering();
         void BlinkAttributeTick();
 
-        IVector<String> SuggestionSearch(String needle);
+        String GetLineText(Int32 row);
+        IVector<SuggestionSearchItem> SuggestionSearch(String needle);
         SearchResults Search(SearchRequest request);
         void ClearSearch();
 

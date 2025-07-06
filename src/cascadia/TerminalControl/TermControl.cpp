@@ -1334,7 +1334,12 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         control->RaiseNotice.raise(*control, std::move(noticeArgs));
     }
 
-    Windows::Foundation::Collections::IVector<hstring> TermControl::SuggestionSearch(winrt::hstring const& needle)
+    hstring TermControl::GetLineText(int32_t rowNumber)
+    {
+        return _core.GetLineText(rowNumber);
+    }
+
+    Windows::Foundation::Collections::IVector<SuggestionSearchItem> TermControl::SuggestionSearch(hstring const& needle)
     {
         return _core.SuggestionSearch(needle);
     }

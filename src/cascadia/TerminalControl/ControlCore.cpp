@@ -1252,23 +1252,45 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         _updateSelectionUI();
     }
 
-    Windows::Foundation::Collections::IVector<hstring> ControlCore::SuggestionSearch(winrt::hstring const& needle)
+    winrt::hstring ControlCore::GetLineText(int32_t rowNumber)
+    {
+        auto lock = _terminal->LockForReading();
+        auto& buffer = _terminal->GetTextBuffer();
+
+        std::wstring result;
+        auto currentRow = rowNumber;
+        for (;;)
+        {
+            const auto& row = buffer.GetRowByOffset(currentRow);
+            result += row.GetText();
+            currentRow++;
+            if (!row.WasWrapForced())
+            {
+                break;
+            }
+        }
+
+        return winrt::hstring{ result };
+    }
+
+    Windows::Foundation::Collections::IVector<SuggestionSearchItem> ControlCore::SuggestionSearch(hstring const& needle)
     {
         auto _ = _terminal->LockForReading();
         //TODO: this should probably skip the current cursor line
         auto& buffer = _terminal->GetTextBuffer();
         if (auto searchResults = buffer.SearchText(needle, SearchFlag::RegularExpression, 0, til::CoordTypeMax))
         {
-            auto results = std::vector<winrt::hstring>();
+            auto results = std::vector<SuggestionSearchItem>();
             results.reserve(searchResults->size());
             for (auto it = searchResults->rbegin(); it != searchResults->rend(); ++it)
             {
-                results.emplace_back(buffer.GetPlainText(it->start, it->end));
+                SuggestionSearchItem item = { it->start.y, winrt::hstring{ buffer.GetPlainText(it->start, it->end) } };
+                results.emplace_back(item);
             }
 
-            return winrt::single_threaded_vector<hstring>(std::move(results));
+            return winrt::single_threaded_vector<SuggestionSearchItem>(std::move(results));
         }
-        return winrt::single_threaded_vector<hstring>();
+        return winrt::single_threaded_vector<SuggestionSearchItem>();
     }
 
     static wil::unique_close_clipboard_call _openClipboard(HWND hwnd)

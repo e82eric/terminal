@@ -85,11 +85,13 @@ namespace winrt::Microsoft::Terminal::Settings::Model::implementation
                                                                                            bool directories,
                                                                                            hstring iconPath);
         static Windows::Foundation::Collections::IVector<Model::Command> ScrollBackSuggestionToCommands(Windows::Foundation::Collections::IVector<winrt::hstring> suggestions);
+        static Model::Command ScrollBackSuggestionToCommand(winrt::hstring text, DescriptionCallback descriptionFunc);
 
         WINRT_PROPERTY(ExpandCommandType, IterateOn, ExpandCommandType::None);
         WINRT_PROPERTY(Model::ActionAndArgs, ActionAndArgs);
         WINRT_PROPERTY(OriginTag, Origin);
         WINRT_PROPERTY(winrt::hstring, Description, L"");
+        WINRT_PROPERTY(DescriptionCallback, DescriptionFunc);
 
     private:
         Json::Value _originalJson;

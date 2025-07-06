@@ -81,9 +81,14 @@ namespace winrt::TerminalApp::implementation
             for (const auto& match : highlightedText.Segments())
             {
                 const auto matchText = match.TextSegment();
-                const auto fontWeight = match.IsHighlighted() ? FontWeights::Bold() : FontWeights::Normal();
 
+                auto fontWeight = FontWeights::Normal();
                 Documents::Run run;
+                if (match.IsHighlighted())
+                {
+                    fontWeight = FontWeights::Bold();
+                    run.Foreground(Media::SolidColorBrush{ Windows::UI::Color{ 0xff, 0x2a, 0xaa, 0xff } });
+                }
                 run.Text(matchText);
                 run.FontWeight(fontWeight);
                 inlinesCollection.Append(run);

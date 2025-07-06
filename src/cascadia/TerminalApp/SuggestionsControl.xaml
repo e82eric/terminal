@@ -116,7 +116,6 @@
                 Orientation="Vertical">
         <Grid x:Name="_backdrop"
               MinWidth="300"
-              MaxWidth="300"
               MaxHeight="300"
               Margin="0"
               Padding="0,8,0,0"
@@ -211,7 +210,6 @@
         </Grid>
 
         <Grid x:Name="_descriptionsBackdrop"
-              MaxWidth="300"
               Margin="0,6,0,6"
               Padding="0,4,0,0"
               HorizontalAlignment="Stretch"

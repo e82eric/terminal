@@ -124,6 +124,7 @@ namespace winrt::TerminalApp::implementation
         Windows::Foundation::Collections::IVector<winrt::TerminalApp::FilteredCommand> _commandsToFilter();
         std::wstring _getTrimmedInput();
         uint32_t _getNumVisibleItems();
+        std::wstring _searchText;
         friend class TerminalAppLocalTests::TabTests;
     };
 }

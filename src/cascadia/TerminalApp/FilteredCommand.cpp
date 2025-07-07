@@ -38,14 +38,14 @@ namespace winrt::TerminalApp::implementation
         _Item = item;
         _Weight = 0;
 
-        _update(false);
+        _update();
 
         // Recompute the highlighted name if the item name changes
         _itemChangedRevoker = _Item.PropertyChanged(winrt::auto_revoke, [weakThis{ get_weak() }](auto& /*sender*/, auto& e) {
             auto filteredCommand{ weakThis.get() };
             if (filteredCommand && e.PropertyName() == L"Name")
             {
-                filteredCommand->_update(false);
+                filteredCommand->_update();
             }
         });
     }
@@ -66,31 +66,24 @@ namespace winrt::TerminalApp::implementation
         // that might result in triggering a notification event
         if (pattern != _pattern)
         {
-            bool tryCache = false;
-            if (pattern && _pattern)
+            if (_resultCache.contains(pattern->text))
             {
-                auto oldPatternLen = _patternLen(*_pattern);
-                auto newPatternLen = _patternLen(*pattern);
-                if (oldPatternLen > 0)
-                {
-                    if (newPatternLen > oldPatternLen && Weight() == 0)
-                    {
-                        _pattern = pattern;
-                        return;
-                    }
-                    else
-                    {
-                        tryCache = newPatternLen < oldPatternLen;
-                    }
-                }
+                auto tuple = _resultCache.at(pattern->text);
+                Weight(std::get<0>(tuple));
+                HighlightedName(std::get<1>(tuple));
+                return;
             }
 
             _pattern = pattern;
-            _update(tryCache);
+            _update();
+            if (Weight() > 0)
+            {
+                _resultCache.insert_or_assign(_pattern->text, std::make_tuple(Weight(), HighlightedName()));
+            }
         }
     }
 
-    void FilteredCommand::_update(bool tryCache)
+    void FilteredCommand::_update()
     {
         std::vector<winrt::TerminalApp::HighlightedTextSegment> segments;
         const auto commandName = _Item.Name();
@@ -102,30 +95,14 @@ namespace winrt::TerminalApp::implementation
         }
         else
         {
-            const auto patternLen = _patternLen(*_pattern);
-            if (patternLen > _resultCache.size())
+            auto fuzzyMatch = fzf::matcher::Match(commandName, *_pattern.get());
+            if (!fuzzyMatch)
             {
-                _resultCache.resize(patternLen);
-            }
-
-            auto& match = _resultCache[patternLen - 1];
-            if (!tryCache || !match)
-            {
-                auto fuzzyMatch = fzf::matcher::Match(commandName, *_pattern.get());
-                match = fuzzyMatch;
-                _resultCache[patternLen - 1] = fuzzyMatch;
-                if (!fuzzyMatch)
-                {
-                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
-                }
-            }
-            if (!match)
-            {
-               segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false)); 
+                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
             }
             else
             {
-                auto& matchResult = *match;
+                auto& matchResult = *fuzzyMatch;
                 weight = matchResult.Score;
 
                 size_t lastPos = 0;

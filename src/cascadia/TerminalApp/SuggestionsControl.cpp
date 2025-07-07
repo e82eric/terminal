@@ -948,57 +948,62 @@ namespace winrt::TerminalApp::implementation
     // - <none>
     std::vector<winrt::TerminalApp::FilteredCommand> SuggestionsControl::_collectFilteredActions()
     {
+        constexpr std::size_t MaxResults = 100;
+
         std::vector<winrt::TerminalApp::FilteredCommand> actions;
-
         winrt::hstring searchText{ _getTrimmedInput() };
-
         auto commandsToFilter = _commandsToFilter();
 
         {
-            auto pattern = std::make_shared<fzf::matcher::Pattern>(fzf::matcher::ParsePattern(searchText));
+            auto isMoreSelective = !_searchText.empty() &&
+                searchText.size() > _searchText.size() &&
+                std::wstring_view(searchText).starts_with(_searchText);
+            _searchText = searchText;
+
+            auto pattern = std::make_shared<fzf::matcher::Pattern>(
+                fzf::matcher::ParsePattern(searchText));
 
             for (const auto& action : commandsToFilter)
             {
-                // Update filter for all commands
-                // This will modify the highlighting but will also lead to re-computation of weight (and consequently sorting).
-                // Pay attention that it already updates the highlighting in the UI
-                auto impl = winrt::get_self<implementation::FilteredCommand>(action);
-                impl->UpdateFilter(pattern);
-
-                // if there is active search we skip commands with 0 weight
-                if (searchText.empty() || action.Weight() > 0)
+                if (!isMoreSelective || action.Weight() > 0)
                 {
-                    actions.push_back(action);
+                    auto impl = winrt::get_self<implementation::FilteredCommand>(action);
+                    impl->UpdateFilter(pattern);
+
+                    if (searchText.empty() || action.Weight() > 0)
+                    {
+                        actions.push_back(action);
+                    }
                 }
             }
         }
 
-        // No sorting in palette mode, so results are still filtered, but in the
-        // original order. This feels more right for something like
-        // recentCommands.
-        //
-        // This is in contrast to the Command Palette, which always sorts its
-        // actions.
-
-        // Adjust the order of the results depending on if we're top-down or
-        // bottom up. This way, the "first" / "best" match is always closest to
-        // the cursor.
-        //if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
-        //{
-        //    // Reverse the list
-        //    std::reverse(std::begin(actions), std::end(actions));
-        //}
-
-
         if (!searchText.empty())
         {
+            auto cmp = FilteredCommand::Compare;
             if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
             {
-                std::sort(actions.rbegin(), actions.rend(), FilteredCommand::Compare);
+                cmp = [](auto const& a, auto const& b) {
+                    return FilteredCommand::Compare(a, b);
+                };
+            }
+
+            if (actions.size() > MaxResults)
+            {
+                std::partial_sort(actions.begin(),
+                                  actions.begin() + MaxResults,
+                                  actions.end(),
+                                  cmp);
+                actions.resize(MaxResults);
             }
             else
             {
-                std::sort(actions.begin(), actions.end(), FilteredCommand::Compare);
+                std::sort(actions.begin(), actions.end(), cmp);
+            }
+
+            if (_direction == TerminalApp::SuggestionsDirection::BottomUp)
+            {
+                std::reverse(actions.begin(), actions.end());
             }
         }
 

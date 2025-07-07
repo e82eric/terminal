@@ -66,20 +66,8 @@ namespace winrt::TerminalApp::implementation
         // that might result in triggering a notification event
         if (pattern != _pattern)
         {
-            if (_resultCache.contains(pattern->text))
-            {
-                auto tuple = _resultCache.at(pattern->text);
-                Weight(std::get<0>(tuple));
-                HighlightedName(std::get<1>(tuple));
-                return;
-            }
-
             _pattern = pattern;
             _update();
-            if (Weight() > 0)
-            {
-                _resultCache.insert_or_assign(_pattern->text, std::make_tuple(Weight(), HighlightedName()));
-            }
         }
     }
 

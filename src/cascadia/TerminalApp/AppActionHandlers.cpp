@@ -1521,7 +1521,6 @@ namespace winrt::TerminalApp::implementation
         {
             if (const auto termControl{_GetActiveControl()})
             {
-                //TODO: handling for when regex is null
                 const auto scrollBackResults = termControl.SuggestionSearch(realArgs.Regex());
 
                 for (auto r : scrollBackResults)

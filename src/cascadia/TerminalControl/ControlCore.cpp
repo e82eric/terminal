@@ -1284,7 +1284,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             results.reserve(searchResults->size());
             for (auto it = searchResults->rbegin(); it != searchResults->rend(); ++it)
             {
-                SuggestionSearchItem item = { it->start.y, winrt::hstring{ buffer.GetPlainText(it->start, it->end) } };
+                SuggestionSearchItem item = { GetLineText(it->start.y), winrt::hstring{ buffer.GetPlainText(it->start, it->end) } };
                 results.emplace_back(item);
             }
 

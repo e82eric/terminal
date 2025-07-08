@@ -1532,10 +1532,7 @@ namespace winrt::TerminalApp::implementation
 
                 for (auto r : scrollBackResults)
                 {
-                    auto c = Command::ScrollBackSuggestionToCommand(r.Text, [rowNumber = r.Row, termControl]() -> winrt::hstring {
-                        //TODO:: termControl needs a local copy
-                        return termControl.GetLineText(rowNumber);
-                    }, currentWordPrefix);
+                    auto c = Command::ScrollBackSuggestionToCommand(r.Text, currentWordPrefix, r.Row);
                     commandsCollection.push_back(c);
                 }
             }

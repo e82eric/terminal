@@ -32,8 +32,6 @@ namespace Microsoft.Terminal.Settings.Model
         ShortcutAction Action;
     };
 
-    delegate String DescriptionCallback();
-
     [default_interface] runtimeclass Command : ISettingsModelObject
     {
         Command();
@@ -42,7 +40,6 @@ namespace Microsoft.Terminal.Settings.Model
         String ID { get; };
 
         String Description { get; };
-        DescriptionCallback DescriptionFunc { get; };
 
         ActionAndArgs ActionAndArgs { get; };
 
@@ -53,6 +50,6 @@ namespace Microsoft.Terminal.Settings.Model
 
         static IVector<Command> ParsePowerShellMenuComplete(String json, Int32 replaceLength);
         static IVector<Command> HistoryToCommands(IVector<String> commandHistory, String commandline, Boolean directories, String iconPath);
-        static Command ScrollBackSuggestionToCommand(String text, DescriptionCallback descriptionFunc, String currentWordPrefix);
+        static Command ScrollBackSuggestionToCommand(String text, String currentWordPrefix, String rowText);
     }
 }

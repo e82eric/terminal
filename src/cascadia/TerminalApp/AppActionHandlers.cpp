@@ -1457,6 +1457,9 @@ namespace winrt::TerminalApp::implementation
         winrt::hstring currentCommandline;
         winrt::hstring currentWorkingDirectory;
 
+        //We don't want to sort command history so that recent commands appear in the list first
+        bool sortResults = source != SuggestionsSource::QuickFixes;
+
         // If the user wanted to use the current commandline to filter results,
         //    OR they wanted command history (or some other source that
         //       requires context from the control)
@@ -1540,7 +1543,8 @@ namespace winrt::TerminalApp::implementation
         _OpenSuggestions(_GetActiveControl(),
                          winrt::single_threaded_vector<Command>(std::move(commandsCollection)),
                          SuggestionsMode::Palette,
-                         currentCommandline);
+                         currentCommandline,
+                         sortResults);
     }
 
     void TerminalPage::_HandleColorSelection(const IInspectable& /*sender*/,

@@ -50,16 +50,6 @@ namespace winrt::TerminalApp::implementation
         });
     }
 
-    size_t _patternLen(const fzf::matcher::Pattern &pattern)
-    {
-        size_t result = 0;
-        for (auto t : pattern.terms)
-        {
-            result += t.size();
-        }
-        return result;
-    }
-
     void FilteredCommand::UpdateFilter(std::shared_ptr<fzf::matcher::Pattern> pattern)
     {
         // If the filter was not changed we want to prevent the re-computation of matching
@@ -81,39 +71,35 @@ namespace winrt::TerminalApp::implementation
         {
             segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
         }
+        else if (auto match = fzf::matcher::Match(commandName, *_pattern.get()); !match)
+        {
+            segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
+        }
         else
         {
-            auto fuzzyMatch = fzf::matcher::Match(commandName, *_pattern.get());
-            if (!fuzzyMatch)
+            auto& matchResult = *match;
+            weight = matchResult.Score;
+
+            size_t lastPos = 0;
+            for (const auto& run : matchResult.Runs)
             {
-                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
+                const auto& [start, end] = run;
+                if (start > lastPos)
+                {
+                    hstring nonMatch{ til::safe_slice_abs(commandName, lastPos, start) };
+                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(nonMatch, false));
+                }
+
+                hstring matchSeg{ til::safe_slice_abs(commandName, start, end + 1) };
+                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(matchSeg, true));
+
+                lastPos = end + 1;
             }
-            else
+
+            if (lastPos < commandName.size())
             {
-                auto& matchResult = *fuzzyMatch;
-                weight = matchResult.Score;
-
-                size_t lastPos = 0;
-                for (const auto& run : matchResult.Runs)
-                {
-                    const auto& [start, end] = run;
-                    if (start > lastPos)
-                    {
-                        hstring nonMatch{ til::safe_slice_abs(commandName, lastPos, start) };
-                        segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(nonMatch, false));
-                    }
-
-                    hstring matchSeg{ til::safe_slice_abs(commandName, start, end + 1) };
-                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(matchSeg, true));
-
-                    lastPos = end + 1;
-                }
-
-                if (lastPos < commandName.size())
-                {
-                    hstring tail{ til::safe_slice_abs(commandName, lastPos, SIZE_T_MAX) };
-                    segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(tail, false));
-                }
+                hstring tail{ til::safe_slice_abs(commandName, lastPos, SIZE_T_MAX) };
+                segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(tail, false));
             }
         }
 

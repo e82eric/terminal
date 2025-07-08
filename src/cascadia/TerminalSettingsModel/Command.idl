@@ -53,7 +53,6 @@ namespace Microsoft.Terminal.Settings.Model
 
         static IVector<Command> ParsePowerShellMenuComplete(String json, Int32 replaceLength);
         static IVector<Command> HistoryToCommands(IVector<String> commandHistory, String commandline, Boolean directories, String iconPath);
-        static IVector<Command> ScrollBackSuggestionToCommands(IVector<String> suggestions);
         static Command ScrollBackSuggestionToCommand(String text, DescriptionCallback descriptionFunc);
     }
 }

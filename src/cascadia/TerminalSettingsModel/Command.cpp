@@ -742,11 +742,11 @@ namespace winrt::Microsoft::Terminal::Settings::Model::implementation
         return winrt::single_threaded_vector<Model::Command>(std::move(result));
     }
 
-    Model::Command Command::ScrollBackSuggestionToCommand(winrt::hstring text, DescriptionCallback descriptionFunc)
+    Model::Command Command::ScrollBackSuggestionToCommand(winrt::hstring text, DescriptionCallback descriptionFunc, winrt::hstring currentWordPrefix)
     {
-        auto args = winrt::make_self<SendInputArgs>(text);
+        auto backspaces = std::wstring(currentWordPrefix.size(), L'\x7f');
+        auto args = winrt::make_self<SendInputArgs>(winrt::hstring{ fmt::format(FMT_COMPILE(L"{}{}"), backspaces, text) });
         Model::ActionAndArgs actionAndArgs{ ShortcutAction::SendInput, *args };
-
         auto command = winrt::make_self<Command>();
         command->_ActionAndArgs = actionAndArgs;
         command->_name = text;

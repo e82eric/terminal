@@ -86,6 +86,7 @@ namespace Microsoft.Terminal.Control
     {
         IVector<String> History { get; };
         String CurrentCommandline { get; };
+        String CurrentWordPrefix { get; };
         IVector<String> QuickFixes { get; };
     };
 

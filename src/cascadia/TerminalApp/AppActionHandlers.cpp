@@ -1455,7 +1455,9 @@ namespace winrt::TerminalApp::implementation
         std::vector<Command> commandsCollection;
         Control::CommandHistoryContext context{ nullptr };
         winrt::hstring currentCommandline;
+        winrt::hstring currentWordPrefix;
         winrt::hstring currentWorkingDirectory;
+        winrt::hstring filter;
 
         //We don't want to sort command history so that recent commands appear in the list first
         bool sortResults = source != SuggestionsSource::QuickFixes;
@@ -1465,7 +1467,7 @@ namespace winrt::TerminalApp::implementation
         //       requires context from the control)
         // then get that here.
         const bool shouldGetContext = realArgs.UseCommandline() ||
-                                      WI_IsAnyFlagSet(source, SuggestionsSource::CommandHistory | SuggestionsSource::QuickFixes);
+                                      WI_IsAnyFlagSet(source, SuggestionsSource::CommandHistory | SuggestionsSource::QuickFixes | SuggestionsSource::Scrollback);
         if (const auto& control{ _GetActiveControl() })
         {
             currentWorkingDirectory = control.CurrentWorkingDirectory();
@@ -1476,6 +1478,8 @@ namespace winrt::TerminalApp::implementation
                 if (context)
                 {
                     currentCommandline = context.CurrentCommandline();
+                    currentWordPrefix = context.CurrentWordPrefix();
+                    filter = source == SuggestionsSource::Scrollback ? currentWordPrefix : currentCommandline;
                 }
             }
         }
@@ -1531,7 +1535,7 @@ namespace winrt::TerminalApp::implementation
                     auto c = Command::ScrollBackSuggestionToCommand(r.Text, [rowNumber = r.Row, termControl]() -> winrt::hstring {
                         //TODO:: termControl needs a local copy
                         return termControl.GetLineText(rowNumber);
-                    });
+                    }, currentWordPrefix);
                     commandsCollection.push_back(c);
                 }
             }
@@ -1543,7 +1547,7 @@ namespace winrt::TerminalApp::implementation
         _OpenSuggestions(_GetActiveControl(),
                          winrt::single_threaded_vector<Command>(std::move(commandsCollection)),
                          SuggestionsMode::Palette,
-                         currentCommandline,
+                         filter,
                          sortResults);
     }
 

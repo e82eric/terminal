@@ -1278,7 +1278,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         auto _ = _terminal->LockForReading();
         //TODO: this should probably skip the current cursor line
         auto& buffer = _terminal->GetTextBuffer();
-        if (auto searchResults = buffer.SearchText(needle, SearchFlag::RegularExpression, 0, til::CoordTypeMax))
+        if (auto searchResults = buffer.SearchText(needle, SearchFlag::RegularExpression, 0, buffer.GetCursor().GetPosition().y))
         {
             auto results = std::vector<SuggestionSearchItem>();
             results.reserve(searchResults->size());

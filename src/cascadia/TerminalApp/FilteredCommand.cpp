@@ -73,11 +73,11 @@ namespace winrt::TerminalApp::implementation
         }
     }
 
-    std::vector<winrt::TerminalApp::HighlightedTextSegment> _make_segments(const std::wstring_view& commandName, const fzf::matcher::MatchResult& matchResult)
+    std::vector<winrt::TerminalApp::HighlightedTextSegment> _make_segments(const std::wstring_view& commandName, const std::vector<fzf::matcher::TextRun>& runs)
     {
         std::vector<winrt::TerminalApp::HighlightedTextSegment> segments;
         size_t lastPos = 0;
-        for (const auto& run : matchResult.Runs)
+        for (const auto& run : runs)
         {
             const auto& [start, end] = run;
             if (start > lastPos)
@@ -116,28 +116,20 @@ namespace winrt::TerminalApp::implementation
         }
         else
         {
-            auto nameMatch = fzf::matcher::Match(commandName, *_pattern.get());
-            auto descriptionMatch = fzf::matcher::Match(description, *_pattern.get());
+            auto match = fzf::matcher::MatchTextAndName(description, commandName ,*_pattern.get());
 
-            if (nameMatch)
+            if (match)
             {
-                weight = nameMatch->Score;
-                segments = _make_segments(commandName, *nameMatch);
+                weight = match->Score;
+                segments = _make_segments(commandName, match->NameRuns);
+                descriptionSegments = _make_segments(description, match->Runs);
             }
             else
             {
                 segments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(commandName, false));
-            }
-
-            if (descriptionMatch)
-            {
-                weight = descriptionMatch->Score - 1;
-                descriptionSegments = _make_segments(description, *descriptionMatch);
-            }
-            else
-            {
                 descriptionSegments.emplace_back(winrt::TerminalApp::HighlightedTextSegment(description, false));
             }
+
         }
 
         HighlightedName(winrt::make<HighlightedText>(winrt::single_threaded_observable_vector(std::move(segments))));

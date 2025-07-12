@@ -256,7 +256,7 @@ bool VimModeProxy::_executeVimSelection(
     const int times,
     const VimMotionType motion,
     const bool isVisual,
-    const std::wstring searchString,
+    const std::wstring /*searchString*/,
     std::wstring_view vkey)
 {
     bool exitAfter = false;

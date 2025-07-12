@@ -2426,7 +2426,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         auto context = winrt::make_self<CommandHistoryContext>(std::move(commands));
         context->CurrentCommandline(trimmedCurrentCommand);
         context->QuickFixes(_cachedQuickFixes);
-        context->CurrentWordPrefix(_terminal->CurrentWordPrefix());
+        context->CurrentWordPrefix(trimToHstring(_terminal->CurrentWordPrefix()));
         return *context;
     }
 

@@ -886,12 +886,14 @@ namespace winrt::TerminalApp::implementation
     void SuggestionsControl::SetCommands(const Collections::IVector<Command>& actions)
     {
         _allCommands.Clear();
+        auto i = 0;
         for (const auto& action : actions)
         {
             // key chords aren't relevant in the suggestions control, so make the palette item with just the command and no keys
             auto actionPaletteItem{ winrt::make<winrt::TerminalApp::implementation::ActionPaletteItem>(action, winrt::hstring{}) };
-            auto filteredCommand{ winrt::make<FilteredCommand>(actionPaletteItem) };
+            auto filteredCommand{ winrt::make<FilteredCommand>(actionPaletteItem, i) };
             _allCommands.Append(filteredCommand);
+            i++;
         }
 
         if (Visibility() == Visibility::Visible)

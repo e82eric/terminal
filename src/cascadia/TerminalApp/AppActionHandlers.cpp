@@ -1530,10 +1530,15 @@ namespace winrt::TerminalApp::implementation
             {
                 const auto scrollBackResults = termControl.SuggestionSearch(realArgs.Regex());
 
+                std::unordered_set<winrt::hstring> seen;
                 for (auto r : scrollBackResults)
                 {
-                    auto c = Command::ScrollBackSuggestionToCommand(r.Text, currentWordPrefix, r.Row);
-                    commandsCollection.push_back(c);
+                    winrt::hstring key = r.Text + L'#' + r.Row;
+                    if (seen.insert(key).second)
+                    {
+                        auto c = Command::ScrollBackSuggestionToCommand(r.Text, currentWordPrefix, r.Row);
+                        commandsCollection.push_back(c);
+                    }
                 }
             }
         }

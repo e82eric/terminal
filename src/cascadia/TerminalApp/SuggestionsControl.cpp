@@ -1284,6 +1284,7 @@ namespace winrt::TerminalApp::implementation
                                   float characterHeight,
                                   bool sortResults)
     {
+        _searchBox().Text(filter);
         Mode(mode);
         SetCommands(commands);
 
@@ -1317,8 +1318,6 @@ namespace winrt::TerminalApp::implementation
         // we'll go update the top separately
         Margin(Windows::UI::Xaml::ThicknessHelper::FromLengths(clampedX, 0, 0, 0));
         _recalculateTopMargin();
-
-        _searchBox().Text(filter);
 
         // If we're in bottom-up mode, make sure to re-select the _last_ item in
         // the list, so that it's like we're starting with the most recent one

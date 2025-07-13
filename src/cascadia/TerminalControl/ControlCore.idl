@@ -155,7 +155,6 @@ namespace Microsoft.Terminal.Control
         void ResumeRendering();
         void BlinkAttributeTick();
 
-        String GetLineText(Int32 row);
         IVector<SuggestionSearchItem> SuggestionSearch(String needle);
         SearchResults Search(SearchRequest request);
         void ClearSearch();

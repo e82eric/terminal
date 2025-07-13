@@ -1454,13 +1454,11 @@ namespace winrt::TerminalApp::implementation
         const auto source = realArgs.Source();
         std::vector<Command> commandsCollection;
         Control::CommandHistoryContext context{ nullptr };
-        winrt::hstring currentCommandline;
-        winrt::hstring currentWordPrefix;
         winrt::hstring currentWorkingDirectory;
         winrt::hstring filter;
 
         //We don't want to sort command history so that recent commands appear in the list first
-        bool sortResults = source != SuggestionsSource::QuickFixes;
+        bool sortResults = source == SuggestionsSource::Scrollback;
 
         // If the user wanted to use the current commandline to filter results,
         //    OR they wanted command history (or some other source that
@@ -1477,8 +1475,8 @@ namespace winrt::TerminalApp::implementation
                 context = control.CommandHistory();
                 if (context)
                 {
-                    currentCommandline = context.CurrentCommandline();
-                    currentWordPrefix = context.CurrentWordPrefix();
+                    winrt::hstring currentCommandline = context.CurrentCommandline();
+                    winrt::hstring currentWordPrefix = context.CurrentWordPrefix();
                     filter = source == SuggestionsSource::Scrollback ? currentWordPrefix : currentCommandline;
                 }
             }
@@ -1503,7 +1501,7 @@ namespace winrt::TerminalApp::implementation
         // their settings file. Ask the ActionMap for those.
         if (WI_IsFlagSet(source, SuggestionsSource::Tasks))
         {
-            const auto tasks = co_await _settings.GlobalSettings().ActionMap().FilterToSnippets(currentCommandline, currentWorkingDirectory);
+            const auto tasks = co_await _settings.GlobalSettings().ActionMap().FilterToSnippets(filter, currentWorkingDirectory);
             // ----- we may be on a background thread here -----
             for (const auto& t : tasks)
             {
@@ -1517,7 +1515,7 @@ namespace winrt::TerminalApp::implementation
         if (WI_IsFlagSet(source, SuggestionsSource::CommandHistory) &&
             context != nullptr)
         {
-            const auto recentCommands = Command::HistoryToCommands(context.History(), currentCommandline, false, hstring{ L"\ue81c" });
+            const auto recentCommands = Command::HistoryToCommands(context.History(), filter, false, hstring{ L"\ue81c" });
             for (const auto& t : recentCommands)
             {
                 commandsCollection.push_back(t);
@@ -1532,6 +1530,7 @@ namespace winrt::TerminalApp::implementation
                 const auto scrollBackResults = termControl.SuggestionSearch(realArgs.Regex());
 
                 std::unordered_set<winrt::hstring> seen;
+                seen.reserve(scrollBackResults.Size());
                 for (auto r : scrollBackResults)
                 {
                     winrt::hstring key = r.Text + L'#' + r.Row;

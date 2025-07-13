@@ -311,7 +311,11 @@ namespace winrt::TerminalApp::implementation
 
     void SuggestionsControl::_openTooltip(Command cmd)
     {
-        auto description{ cmd.Description() };
+        const auto description{ cmd.Description() };
+        if (description.empty())
+        {
+            return;
+        }
 
         // Build the contents of the "tooltip" based on the description
         //

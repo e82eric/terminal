@@ -1051,45 +1051,36 @@ namespace winrt::TerminalApp::implementation
     void SuggestionsControl::_updateFilteredActions()
     {
         auto actions = _collectFilteredActions();
-        if (_sortResults)
+        for (uint32_t i = 0; i < _filteredActions.Size() && i < actions.size(); i++)
         {
-            _filteredActions.ReplaceAll(actions);
-        }
-        else
-        {
-            // Make _filteredActions look identical to actions, using only Insert and Remove.
-            // This allows WinUI to nicely animate the ListView as it changes.
-            for (uint32_t i = 0; i < _filteredActions.Size() && i < actions.size(); i++)
+            for (auto j = i; j < _filteredActions.Size(); j++)
             {
-                for (auto j = i; j < _filteredActions.Size(); j++)
+                if (_filteredActions.GetAt(j).Item() == actions[i].Item())
                 {
-                    if (_filteredActions.GetAt(j).Item() == actions[i].Item())
+                    for (auto k = i; k < j; k++)
                     {
-                        for (auto k = i; k < j; k++)
-                        {
-                            _filteredActions.RemoveAt(i);
-                        }
-                        break;
+                        _filteredActions.RemoveAt(i);
                     }
-                }
-
-                if (_filteredActions.GetAt(i).Item() != actions[i].Item())
-                {
-                    _filteredActions.InsertAt(i, actions[i]);
+                    break;
                 }
             }
 
-            // Remove any extra trailing items from the destination
-            while (_filteredActions.Size() > actions.size())
+            if (_filteredActions.GetAt(i).Item() != actions[i].Item())
             {
-                _filteredActions.RemoveAtEnd();
+                _filteredActions.InsertAt(i, actions[i]);
             }
+        }
 
-            // Add any extra trailing items from the source
-            while (_filteredActions.Size() < actions.size())
-            {
-                _filteredActions.Append(actions[_filteredActions.Size()]);
-            }
+        // Remove any extra trailing items from the destination
+        while (_filteredActions.Size() > actions.size())
+        {
+            _filteredActions.RemoveAtEnd();
+        }
+
+        // Add any extra trailing items from the source
+        while (_filteredActions.Size() < actions.size())
+        {
+            _filteredActions.Append(actions[_filteredActions.Size()]);
         }
     }
 

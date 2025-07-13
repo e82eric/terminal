@@ -1524,7 +1524,8 @@ namespace winrt::TerminalApp::implementation
             }
         }
 
-        if (WI_IsFlagSet(source, SuggestionsSource::Scrollback))
+        // Don't add this to All, or figure out a way to make it experimental
+        if (source == SuggestionsSource::Scrollback)
         {
             if (const auto termControl{_GetActiveControl()})
             {
@@ -1536,7 +1537,7 @@ namespace winrt::TerminalApp::implementation
                     winrt::hstring key = r.Text + L'#' + r.Row;
                     if (seen.insert(key).second)
                     {
-                        auto c = Command::ScrollBackSuggestionToCommand(r.Text, currentWordPrefix, r.Row);
+                        auto c = Command::ScrollBackSuggestionToCommand(r.Text, filter, r.Row);
                         commandsCollection.push_back(c);
                     }
                 }

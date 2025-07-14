@@ -343,6 +343,7 @@ static int32_t fzfFuzzyMatchV2(const std::vector<UChar32>& text, const std::vect
 Pattern fzf::matcher::ParsePattern(const std::wstring_view patternStr)
 {
     Pattern patObj;
+    patObj.text = std::wstring{ patternStr };
     size_t pos = 0;
 
     while (true)

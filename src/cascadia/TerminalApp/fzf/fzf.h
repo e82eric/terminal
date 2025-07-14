@@ -19,6 +19,7 @@ namespace fzf::matcher
 
     struct Pattern
     {
+        std::wstring text;
         std::vector<std::vector<UChar32>> terms;
     };
 

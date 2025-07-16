@@ -60,10 +60,10 @@
                                       Height="16"
                                       Content="{x:Bind Item.ResolvedIcon, Mode=OneWay}" />
 
-                    <local:HighlightedTextControl Grid.Column="1"
-                                                  HorizontalAlignment="Left"
-                                                  HighlightedRuns="{x:Bind NameHighlights, Mode=OneWay}"
-                                                  Text="{x:Bind Item.Name, Mode=OneWay}" />
+                    <TextBlock Grid.Column="1"
+                               HorizontalAlignment="Left"
+                               FontWeight="Bold"
+                               Text="{x:Bind Item.Name, Mode=OneWay}" />
                     <local:HighlightedTextControl Grid.Column="1"
                                                   Grid.Row="1"
                                                   HorizontalAlignment="Left"

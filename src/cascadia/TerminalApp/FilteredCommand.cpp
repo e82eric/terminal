@@ -34,8 +34,8 @@ namespace winrt::TerminalApp::implementation
     FilteredCommand::FilteredCommand(const winrt::TerminalApp::PaletteItem& item, int32_t ordinal)
     {
         // Actually implement the ctor in _constructFilteredCommand
-        _constructFilteredCommand(item);
         _ordinal = ordinal;
+        _constructFilteredCommand(item);
     }
 
     // We need to actually implement the ctor in a separate helper. This is
@@ -45,6 +45,11 @@ namespace winrt::TerminalApp::implementation
     // directly in the base class.
     void FilteredCommand::_constructFilteredCommand(const winrt::TerminalApp::PaletteItem& item)
     {
+        if (auto cmd = item.try_as<ActionPaletteItem>())
+        {
+            Description(cmd.Command().Description());
+        }
+
         _Item = item;
         _Weight = 0;
 

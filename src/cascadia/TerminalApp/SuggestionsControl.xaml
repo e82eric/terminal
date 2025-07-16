@@ -50,6 +50,11 @@
                         <!--  gutter for scrollbar  -->
                     </Grid.ColumnDefinitions>
 
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
                     <ContentPresenter Grid.Column="0"
                                       Width="16"
                                       Height="16"
@@ -59,7 +64,11 @@
                                                   HorizontalAlignment="Left"
                                                   HighlightedRuns="{x:Bind NameHighlights, Mode=OneWay}"
                                                   Text="{x:Bind Item.Name, Mode=OneWay}" />
-
+                    <local:HighlightedTextControl Grid.Column="1"
+                                                  Grid.Row="1"
+                                                  HorizontalAlignment="Left"
+                                                  HighlightedRuns="{x:Bind NameHighlights, Mode=OneWay}"
+                                                  Text="{x:Bind Description, Mode=OneWay}" />
                 </Grid>
             </DataTemplate>
 
@@ -108,7 +117,6 @@
                 Orientation="Vertical">
         <Grid x:Name="_backdrop"
               MinWidth="300"
-              MaxWidth="300"
               MaxHeight="300"
               Margin="0"
               Padding="0,8,0,0"
@@ -207,7 +215,6 @@
         </Grid>
 
         <Grid x:Name="_descriptionsBackdrop"
-              MaxWidth="300"
               Margin="0,6,0,6"
               Padding="0,4,0,0"
               HorizontalAlignment="Stretch"

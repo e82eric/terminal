@@ -294,7 +294,7 @@ namespace winrt::TerminalApp::implementation
                     selected.SetValue(Automation::AutomationProperties::FullDescriptionProperty(), winrt::box_value(description));
                 }
 
-                if (!description.empty())
+                if (!description.empty() && true == false)
                 {
                     _openTooltip(cmd);
                 }
@@ -998,7 +998,7 @@ namespace winrt::TerminalApp::implementation
         }
         else
         {
-            constexpr std::size_t MaxResults = 1000;
+            constexpr std::size_t MaxResults = 25;
             if (searchText.empty() && actions.size() > MaxResults)
             {
                 actions.resize(MaxResults);

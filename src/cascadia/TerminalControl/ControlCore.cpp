@@ -2370,6 +2370,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         auto context = winrt::make_self<CommandHistoryContext>(std::move(commands));
         context->CurrentCommandline(trimmedCurrentCommand);
         context->QuickFixes(_cachedQuickFixes);
+        context->CurrentWordPrefix(trimToHstring(_terminal->CurrentWordPrefix()));
         return *context;
     }
 
@@ -2891,5 +2892,86 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     void ControlCore::PreviewInput(std::wstring_view input)
     {
         _terminal->PreviewText(input);
+    }
+
+    Windows::Foundation::IAsyncAction ControlCore::SuggestionScrollBackSearchAsync(winrt::hstring needle, SuggestionBatchHandler const& onBatch)
+    {
+        auto batchCb = winrt::make_agile(onBatch);
+
+        std::unique_ptr<TextBuffer> snapshotBuffer;
+        std::optional<std::vector<til::point_span>> searchResults;
+
+        auto cursorY = 0;
+
+        // There has to be a more efficient way to do this
+        // Snapshot the buffer instead of using the terminals buffer directly
+        // so that we can hold the lock for as short of period of time.
+        // If not there will be a bunch of delays from StreamingSuggestions waiting
+        // on the main thread to show a batch which is waiting for (TabColor|Focus|Cursor)
+        // which is waiting on the terminal lock for regex to complete.  This gets better if the
+        // lock on the terminal is released each regex batch but the delay is still noticeable.
+        {
+            auto lock = _terminal->LockForReading();
+            auto& buffer = _terminal->GetTextBuffer();
+            cursorY = buffer.GetCursor().GetPosition().y;
+
+            const auto size = buffer.GetSize().Dimensions();
+            snapshotBuffer = std::make_unique<TextBuffer>(
+                size,
+                buffer.GetCurrentAttributes(),
+                0,
+                false,
+                nullptr);
+
+            for (til::CoordType y = 0; y <= cursorY; ++y)
+            {
+                buffer.CopyRow(y, y, *snapshotBuffer);
+            }
+        }
+
+        co_await resume_background();
+
+        const til::CoordType rowBatchSize = 2500;
+
+        std::unordered_set<std::wstring> seen;
+        auto ordinal = 0;
+        for (til::CoordType end = cursorY; end > 0;)
+        {
+            const til::CoordType beg = std::max<til::CoordType>(0, end - rowBatchSize);
+            {
+                if (auto searchResults = snapshotBuffer->SearchText(needle, SearchFlag::RegularExpression, beg, end))
+                {
+                    auto spans = searchResults.value();
+
+                    std::vector<SuggestionSearchItem> items;
+                    items.reserve(spans.size());
+                    for (auto it = spans.rbegin(); it != spans.rend(); ++it)
+                    {
+                        auto span = *it;
+                        auto text = snapshotBuffer->GetPlainText(span.start, span.end);
+
+                        if (seen.insert(text).second)
+                        {
+                            auto item = SuggestionSearchItem{
+                                hstring{ snapshotBuffer->GetPlainText(span.start, span.end) },
+                                ordinal
+                            };
+                            items.emplace_back(item);
+                            ordinal++;
+                        }
+                    }
+
+                    auto batch = winrt::make_self<SuggestionBatch>(std::move(items));
+                    if (auto cb = batchCb.get())
+                    {
+                        cb(*batch);
+                    }
+                }
+
+                end = beg;
+            }
+        }
+
+        co_return;
     }
 }

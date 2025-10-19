@@ -145,6 +145,7 @@ namespace Microsoft.Terminal.Settings.Model
         CommandHistory = 0x2,
         DirectoryHistory = 0x4,
         QuickFixes = 0x8,
+        Scrollback = 0x10,
         All = 0xffffffff,
     };
 
@@ -373,9 +374,10 @@ namespace Microsoft.Terminal.Settings.Model
     [default_interface] runtimeclass SuggestionsArgs : IActionArgs, IActionArgsDescriptorAccess
     {
         SuggestionsArgs();
-        SuggestionsArgs(SuggestionsSource source, Boolean useCommandline);
+        SuggestionsArgs(SuggestionsSource source, Boolean useCommandline, String regex);
         SuggestionsSource Source { get; };
         Boolean UseCommandline { get; };
+        String Regex { get; };
     };
 
     [default_interface] runtimeclass FindMatchArgs : IActionArgs, IActionArgsDescriptorAccess

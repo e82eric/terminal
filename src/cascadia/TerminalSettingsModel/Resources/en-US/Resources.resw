@@ -901,6 +901,9 @@
   <data name="UseCommandlineActionArgumentLocalized" xml:space="preserve">
     <value>Use Commandline</value>
   </data>
+  <data name="RegexActionArgumentLocalized" xml:space="preserve">
+    <value>Regex</value>
+  </data>
   <data name="SwitcherModeActionArgumentLocalized" xml:space="preserve">
     <value>Switcher Mode</value>
   </data>

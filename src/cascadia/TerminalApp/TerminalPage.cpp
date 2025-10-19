@@ -223,6 +223,14 @@ namespace winrt::TerminalApp::implementation
         _WindowProperties{ std::move(properties) }
     {
         InitializeComponent();
+
+        StreamingSuggestionsElement().RegisterPropertyChangedCallback(UIElement::VisibilityProperty(), [this](auto&&, auto&&) {
+            if (StreamingSuggestionsElement().Visibility() == Visibility::Collapsed)
+            {
+                _FocusActiveControl(nullptr, nullptr);
+            }
+        });
+
         _WindowProperties.PropertyChanged({ get_weak(), &TerminalPage::_windowPropertyChanged });
     }
 
@@ -620,6 +628,12 @@ namespace winrt::TerminalApp::implementation
     // Return Value:
     // - <none>
     void TerminalPage::_OnDispatchCommandRequested(const IInspectable& sender, const Microsoft::Terminal::Settings::Model::Command& command)
+    {
+        const auto& actionAndArgs = command.ActionAndArgs();
+        _actionDispatch->DoAction(sender, actionAndArgs);
+    }
+
+    void TerminalPage::_OnStreamingDispatchCommandRequested(const IInspectable& sender, const Microsoft::Terminal::Settings::Model::Command& command)
     {
         const auto& actionAndArgs = command.ActionAndArgs();
         _actionDispatch->DoAction(sender, actionAndArgs);

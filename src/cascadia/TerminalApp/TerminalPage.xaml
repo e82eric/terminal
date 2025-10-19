@@ -175,6 +175,14 @@
                                   PreviewKeyDown="_KeyDownHandler"
                                   Visibility="Collapsed" />
 
+        <local:StreamingSuggestions x:Name="StreamingSuggestionsElement" 
+                                    Grid.Row="2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    PreviewKeyDown="_KeyDownHandler"
+                                    DispatchCommandRequested="_OnStreamingDispatchCommandRequested"
+                                    Visibility="Collapsed" />
+
         <!--
             A TeachingTip with IsLightDismissEnabled="True" will immediately
             dismiss itself if the window is unfocused (In Xaml Islands). This is

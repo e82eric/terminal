@@ -3932,6 +3932,11 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         _core.ColorSelection(fg, bg, matchMode);
     }
 
+    Windows::Foundation::IAsyncAction TermControl::SuggestionScrollBackSearchAsync(winrt::hstring const& needle, SuggestionBatchHandler const& onBatch)
+    {
+        return _core.SuggestionScrollBackSearchAsync(needle, onBatch);
+    }
+
     // Returns the text cursor's position relative to our origin, in DIPs.
     Windows::Foundation::Point TermControl::CursorPositionInDips()
     {

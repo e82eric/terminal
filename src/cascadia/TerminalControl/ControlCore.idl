@@ -7,7 +7,6 @@ import "EventArgs.idl";
 
 namespace Microsoft.Terminal.Control
 {
-
     // This is a mirror of
     // ::Microsoft::Console::VirtualTerminal::TerminalInput::MouseButtonState,
     // but projectable.
@@ -67,6 +66,17 @@ namespace Microsoft.Terminal.Control
         Boolean SearchRegexInvalid;
     };
 
+    struct SuggestionSearchItem
+    {
+        String Text;
+        Int32 Ordinal;
+    };
+
+    runtimeclass SuggestionBatch
+    {
+        IVector<SuggestionSearchItem> Items { get; };
+    }
+
     [default_interface] runtimeclass SelectionColor
     {
         SelectionColor();
@@ -80,8 +90,11 @@ namespace Microsoft.Terminal.Control
     {
         IVector<String> History { get; };
         String CurrentCommandline { get; };
+        String CurrentWordPrefix { get; };
         IVector<String> QuickFixes { get; };
     };
+
+    delegate void SuggestionBatchHandler(Microsoft.Terminal.Control.SuggestionBatch batch);
 
     [default_interface] runtimeclass ControlCore : ICoreState
     {
@@ -220,5 +233,6 @@ namespace Microsoft.Terminal.Control
 
         event Windows.Foundation.TypedEventHandler<Object, CompletionsChangedEventArgs> CompletionsChanged;
 
+        Windows.Foundation.IAsyncAction SuggestionScrollBackSearchAsync(String needle, SuggestionBatchHandler onBatch);
     };
 }

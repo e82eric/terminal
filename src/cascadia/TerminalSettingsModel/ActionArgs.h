@@ -229,7 +229,8 @@ protected:                                                                  \
 ////////////////////////////////////////////////////////////////////////////////
 #define SUGGESTIONS_ARGS(X)                                                                    \
     X(SuggestionsSource, Source, "source", false, ArgTypeHint::None, SuggestionsSource::Tasks) \
-    X(bool, UseCommandline, "useCommandline", false, ArgTypeHint::None, false)
+    X(bool, UseCommandline, "useCommandline", false, ArgTypeHint::None, false) \
+    X(winrt::hstring, Regex, "regex", false, ArgTypeHint::None, L"[^\\s]{5,}") //Setting the default here may not be ok since other suggestion sources don't use a regex
 
 ////////////////////////////////////////////////////////////////////////////////
 #define FIND_MATCH_ARGS(X) \

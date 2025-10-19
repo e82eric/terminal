@@ -80,6 +80,9 @@
     <Page Include="MarkdownPaneContent.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="StreamingSuggestions.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <!-- ========================= Headers ======================== -->
   <ItemGroup>
@@ -180,6 +183,9 @@
     </ClInclude>
     <ClInclude Include="MarkdownPaneContent.h">
       <DependentUpon>MarkdownPaneContent.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="StreamingSuggestions.h">
+      <DependentUpon>StreamingSuggestions.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="WindowsPackageManagerFactory.h" />
   </ItemGroup>
@@ -295,6 +301,9 @@
       <DependentUpon>MarkdownPaneContent.xaml</DependentUpon>
       <SubType>Code</SubType>
     </ClCompile>
+    <ClCompile Include="StreamingSuggestions.cpp">
+      <DependentUpon>StreamingSuggestions.xaml</DependentUpon>
+    </ClCompile>
 
   </ItemGroup>
   <!-- ========================= idl Files ======================== -->
@@ -364,6 +373,10 @@
     </Midl>
     <Midl Include="MarkdownPaneContent.idl">
       <DependentUpon>MarkdownPaneContent.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Midl>
+    <Midl Include="StreamingSuggestions.idl">
+      <DependentUpon>StreamingSuggestions.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Midl>
   </ItemGroup>

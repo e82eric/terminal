@@ -18,6 +18,7 @@
 #include "ControlCore.g.h"
 #include "SelectionColor.g.h"
 #include "CommandHistoryContext.g.h"
+#include "SuggestionBatch.g.h"
 
 #include "../../audio/midi/MidiAudio.hpp"
 #include "../../buffer/out/search.h"
@@ -67,12 +68,23 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     {
         til::property<Windows::Foundation::Collections::IVector<winrt::hstring>> History;
         til::property<winrt::hstring> CurrentCommandline;
+        til::property<winrt::hstring> CurrentWordPrefix;
         til::property<Windows::Foundation::Collections::IVector<winrt::hstring>> QuickFixes;
 
         CommandHistoryContext(std::vector<winrt::hstring>&& history) :
             QuickFixes(winrt::single_threaded_vector<winrt::hstring>())
         {
             History(winrt::single_threaded_vector<winrt::hstring>(std::move(history)));
+        }
+    };
+    struct SuggestionBatch : SuggestionBatchT<SuggestionBatch>
+    {
+        til::property<Windows::Foundation::Collections::IVector<SuggestionSearchItem>> Items;
+
+        SuggestionBatch(std::vector<Control::SuggestionSearchItem>&& items) :
+            Items(winrt::single_threaded_vector<SuggestionSearchItem>())
+        {
+            Items(winrt::single_threaded_vector<SuggestionSearchItem>(std::move(items)));
         }
     };
 
@@ -228,6 +240,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         void SetSelectionAnchor(const til::point position);
         void SetEndSelectionPoint(const til::point position);
 
+        Windows::Foundation::Collections::IVector<SuggestionSearchItem> SuggestionScrollBackSearch(hstring const& needle);
         SearchResults Search(SearchRequest request);
         const std::vector<til::point_span>& SearchResultRows() const noexcept;
         void ClearSearch();
@@ -462,6 +475,9 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         friend class ControlUnitTests::ControlCoreTests;
         friend class ControlUnitTests::ControlInteractivityTests;
         bool _inUnitTests{ false };
+
+    public:
+        Windows::Foundation::IAsyncAction SuggestionScrollBackSearchAsync( winrt::hstring needle, SuggestionBatchHandler const& onBatch);
     };
 }
 

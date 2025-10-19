@@ -117,6 +117,8 @@ namespace Microsoft.Terminal.Control
 
         void ScrollViewport(Int32 viewTop);
 
+        Windows.Foundation.IAsyncAction SuggestionScrollBackSearchAsync(String needle, SuggestionBatchHandler onBatch);
+
         void CreateSearchBoxControl();
         Boolean SearchBoxEditInFocus();
 

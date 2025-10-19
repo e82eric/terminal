@@ -84,6 +84,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         void WindowVisibilityChanged(const bool showOrHide);
 
         void ColorSelection(Control::SelectionColor fg, Control::SelectionColor bg, Core::MatchMode matchMode);
+        Windows::Foundation::IAsyncAction SuggestionScrollBackSearchAsync( winrt::hstring const& needle, SuggestionBatchHandler const& onBatch);
 
 #pragma region ICoreState
         const uint64_t TaskbarState() const noexcept;

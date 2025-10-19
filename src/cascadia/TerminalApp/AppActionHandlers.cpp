@@ -1459,15 +1459,15 @@ namespace winrt::TerminalApp::implementation
         const auto source = realArgs.Source();
         std::vector<Command> commandsCollection;
         Control::CommandHistoryContext context{ nullptr };
-        winrt::hstring currentCommandline;
         winrt::hstring currentWorkingDirectory;
+        winrt::hstring filter;
 
         // If the user wanted to use the current commandline to filter results,
         //    OR they wanted command history (or some other source that
         //       requires context from the control)
         // then get that here.
         const bool shouldGetContext = realArgs.UseCommandline() ||
-                                      WI_IsAnyFlagSet(source, SuggestionsSource::CommandHistory | SuggestionsSource::QuickFixes);
+                                      WI_IsAnyFlagSet(source, SuggestionsSource::CommandHistory | SuggestionsSource::QuickFixes | SuggestionsSource::Scrollback);
         if (const auto& control{ _GetActiveControl() })
         {
             currentWorkingDirectory = control.CurrentWorkingDirectory();
@@ -1477,7 +1477,9 @@ namespace winrt::TerminalApp::implementation
                 context = control.CommandHistory();
                 if (context)
                 {
-                    currentCommandline = context.CurrentCommandline();
+                    winrt::hstring currentCommandline = context.CurrentCommandline();
+                    winrt::hstring currentWordPrefix = context.CurrentWordPrefix();
+                    filter = source == SuggestionsSource::Scrollback ? currentWordPrefix : currentCommandline;
                 }
             }
         }
@@ -1501,7 +1503,7 @@ namespace winrt::TerminalApp::implementation
         // their settings file. Ask the ActionMap for those.
         if (WI_IsFlagSet(source, SuggestionsSource::Tasks))
         {
-            const auto tasks = co_await _settings.GlobalSettings().ActionMap().FilterToSnippets(currentCommandline, currentWorkingDirectory);
+            const auto tasks = co_await _settings.GlobalSettings().ActionMap().FilterToSnippets(filter, currentWorkingDirectory);
             // ----- we may be on a background thread here -----
             for (const auto& t : tasks)
             {
@@ -1515,10 +1517,26 @@ namespace winrt::TerminalApp::implementation
         if (WI_IsFlagSet(source, SuggestionsSource::CommandHistory) &&
             context != nullptr)
         {
-            const auto recentCommands = Command::HistoryToCommands(context.History(), currentCommandline, false, hstring{ L"\ue81c" });
+            const auto recentCommands = Command::HistoryToCommands(context.History(), filter, false, hstring{ L"\ue81c" });
             for (const auto& t : recentCommands)
             {
                 commandsCollection.push_back(t);
+            }
+        }
+
+        // Don't add this to All, or figure out a way to make it experimental
+        if (source == SuggestionsSource::Scrollback)
+        {
+            if (const auto termControl{_GetActiveControl()})
+            {
+                const auto cursorPos{ termControl.CursorPositionInDips() };
+                const auto controlTransform = termControl.TransformToVisual(this->Root());
+                const auto realCursorPos{ controlTransform.TransformPoint({ cursorPos.X, cursorPos.Y }) };
+                const Windows::Foundation::Size windowDimensions{ gsl::narrow_cast<float>(ActualWidth()), gsl::narrow_cast<float>(ActualHeight()) };
+                const auto characterHeight = termControl.CharacterDimensions().Height;
+                
+                StreamingSuggestionsElement().Open(termControl, realArgs.Regex(), realCursorPos, windowDimensions, characterHeight, filter);
+                co_return;
             }
         }
 
@@ -1528,7 +1546,7 @@ namespace winrt::TerminalApp::implementation
         _OpenSuggestions(_GetActiveControl(),
                          winrt::single_threaded_vector<Command>(std::move(commandsCollection)),
                          SuggestionsMode::Palette,
-                         currentCommandline);
+                         filter);
     }
 
     void TerminalPage::_HandleColorSelection(const IInspectable& /*sender*/,
